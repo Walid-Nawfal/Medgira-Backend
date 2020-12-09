@@ -7,7 +7,7 @@ var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var userRouter = require('./routes/users');
 var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
@@ -42,7 +42,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/users', userRouter);
 
 
 app.use(express.static(path.join(__dirname, 'public')));
