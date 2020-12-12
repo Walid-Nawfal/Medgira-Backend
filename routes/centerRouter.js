@@ -2,45 +2,48 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const authenticate =  require('../authenticate')
-
 var app = express()
+var cors = require('cors');
 
+
+app.use(cors());
 app.use(bodyParser.json())
 
-const Dishes = require('../models/dishes');
+const Centers = require('../models/centers');
 
-const dishRouter = express.Router();
+const centerRouter = express.Router();
 
-dishRouter.use(bodyParser.json());
+centerRouter.use(bodyParser.json());
 
-dishRouter.route('/')
+centerRouter.route('/')
 .get((req,res,next) => {
-    Dishes.find({})
+    Centers.find({})
     .populate('comments.author')
-    .then((dishes) => {
+    .then((centers) => {
+        console.log(centers);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(dishes);
+        res.json(centers);
     }, (err) => next(err))
     .catch((err) => next(err));
 })
 
 .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Dishes.create(req.body)
-    .then((dish) => {
-        console.log('Dish Created ', dish);
+    Centers.create(req.body)
+    .then((center) => {
+        console.log('Center Created ', center);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(dish);
+        res.json(center);
     }, (err) => next(err))
     .catch((err) => next(err));
 })
 .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
-    res.end('PUT operation not supported on /dishes');
+    res.end('PUT operation not supported on /centers');
 })
 .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Dishes.remove({})
+    Centers.remove({})
     .then((resp) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -49,34 +52,34 @@ dishRouter.route('/')
     .catch((err) => next(err));    
 });
 
-dishRouter.route('/:dishId')
+centerRouter.route('/:centerId')
 .get((req,res,next) => {
-    Dishes.findById(req.params.dishId)
+    Centers.findById(req.params.centerId)
     .populate('comments.author')
-    .then((dish) => {
+    .then((center) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(dish);
+        res.json(center);
     }, (err) => next(err))
     .catch((err) => next(err));
 })
 .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
-    res.end('POST operation not supported on /dishes/'+ req.params.dishId);
+    res.end('POST operation not supported on /centers/'+ req.params.centerId);
 })
 .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Dishes.findByIdAndUpdate(req.params.dishId, {
+    Centers.findByIdAndUpdate(req.params.centerId, {
         $set: req.body
     }, { new: true })
-    .then((dish) => {
+    .then((center) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(dish);
+        res.json(center);
     }, (err) => next(err))
     .catch((err) => next(err));
 })
 .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Dishes.findByIdAndRemove(req.params.dishId)
+    Centers.findByIdAndRemove(req.params.centerId)
     .then((resp) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -85,18 +88,18 @@ dishRouter.route('/:dishId')
     .catch((err) => next(err));
 });
 
-dishRouter.route('/:dishId/comments')
+centerRouter.route('/:centerId/comments')
 .get((req,res,next) => {
-    Dishes.findById(req.params.dishId)
+    Centers.findById(req.params.centerId)
     .populate('comments.author')
-    .then((dish) => {
-        if (dish != null) {
+    .then((center) => {
+        if (center != null) {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
-            res.json(dish.comments);
+            res.json(center.comments);
         }
         else {
-            err = new Error('Dish ' + req.params.dishId + ' not found');
+            err = new Error('Center ' + req.params.centerId + ' not found');
             err.status = 404;
             return next(err);
         }
@@ -104,28 +107,28 @@ dishRouter.route('/:dishId/comments')
     .catch((err) => next(err));
 })
 
-.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Dishes.findById(req.params.dishId)
-    .then((dish) => {
-        if (dish != null) {
+.post(authenticate.verifyUser, (req, res, next) => {
+    Centers.findById(req.params.centerId)
+    .then((center) => {
+        if (center != null) {
             req.body.author = req.user._id;
-            console.log(dish.comments);
-            dish.comments.push(req.body);
-            console.log(dish.comments);
+            console.log(center.comments);
+            center.comments.push(req.body);
+            console.log(center.comments);
             console.log(req.body);
-            dish.save()
-            .then((dish) => {
-                Dishes.findById(dish._id)
+            center.save()
+            .then((center) => {
+                Centers.findById(center._id)
                 .populate('comments.author')
-                .then((dish) => {
+                .then((center) => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.json(dish);
+                    res.json(center);
                 })
             }, (err) => next(err));
         }
         else {
-            err = new Error('Dish ' + req.params.dishId + ' not found');
+            err = new Error('Center ' + req.params.centerId + ' not found');
             err.status = 404;
             return next(err);
         }
@@ -135,25 +138,25 @@ dishRouter.route('/:dishId/comments')
 
 .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
-    res.end('PUT operation not supported on /dishes/'
-        + req.params.dishId + '/comments');
+    res.end('PUT operation not supported on /centers/'
+        + req.params.centerId + '/comments');
 })
 .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Dishes.findById(req.params.dishId)
-    .then((dish) => {
-        if (dish != null) {
-            for (var i = (dish.comments.length -1); i >= 0; i--) {
-                dish.comments.id(dish.comments[i]._id).remove();
+    Centers.findById(req.params.centerId)
+    .then((center) => {
+        if (center != null) {
+            for (var i = (center.comments.length -1); i >= 0; i--) {
+                center.comments.id(center.comments[i]._id).remove();
             }
-            dish.save()
-            .then((dish) => {
+            center.save()
+            .then((center) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json(dish);                
+                res.json(center);                
             }, (err) => next(err));
         }
         else {
-            err = new Error('Dish ' + req.params.dishId + ' not found');
+            err = new Error('Center ' + req.params.centerId + ' not found');
             err.status = 404;
             return next(err);
         }
@@ -161,18 +164,18 @@ dishRouter.route('/:dishId/comments')
     .catch((err) => next(err));    
 });
 
-dishRouter.route('/:dishId/comments/:commentId')
+centerRouter.route('/:centerId/comments/:commentId')
 .get((req,res,next) => {
-    Dishes.findById(req.params.dishId)
+    Centers.findById(req.params.centerId)
     .populate('mongoose.path')
-    .then((dish) => {
-        if (dish != null && dish.comments.id(req.params.commentId) != null) {
+    .then((center) => {
+        if (center != null && center.comments.id(req.params.commentId) != null) {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
-            res.json(dish.comments.id(req.params.commentId));
+            res.json(center.comments.id(req.params.commentId));
         }
-        else if (dish == null) {
-            err = new Error('Dish ' + req.params.dishId + ' not found');
+        else if (center == null) {
+            err = new Error('Center ' + req.params.centerId + ' not found');
             err.status = 404;
             return next(err);
         }
@@ -186,36 +189,36 @@ dishRouter.route('/:dishId/comments/:commentId')
 })
 .post(authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
-    res.end('POST operation not supported on /dishes/'+ req.params.dishId
+    res.end('POST operation not supported on /centers/'+ req.params.centerId
         + '/comments/' + req.params.commentId);
 })
 .put(authenticate.verifyUser, (req, res, next) => {
-    Dishes.findById(req.params.dishId)
-        .then((dish) => {
-            if(!req.user._id.equals(dish.comments.id(req.params.commentId).author)){
+    Centers.findById(req.params.centerId)
+        .then((center) => {
+            if(!req.user._id.equals(center.comments.id(req.params.commentId).author)){
                 err = new Error('You are not authorized to edit this comment!');
                 err.status = 403;
                 return next(err);
             }
-            if (dish != null && dish.comments.id(req.params.commentId) != null) {
+            if (center != null && center.comments.id(req.params.commentId) != null) {
                 if (req.body.rating) {
-                     dish.comments.id(req.params.commentId).rating = req.body.rating;
+                     center.comments.id(req.params.commentId).rating = req.body.rating;
                  }
                 if (req.body.comment) {
-                    dish.comments.id(req.params.commentId).comment = req.body.comment;                
+                    center.comments.id(req.params.commentId).comment = req.body.comment;                
                 }
-            dish.save()
-            .then((dish) => {
-                Dishes.findById(dish._id)
-                .populate((dish) => {
+            center.save()
+            .then((center) => {
+                Centers.findById(center._id)
+                .populate((center) => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.json(dish);      
+                    res.json(center);      
                 })         
             }, (err) => next(err));
         }
-        else if (dish == null) {
-            err = new Error('Dish ' + req.params.dishId + ' not found');
+        else if (center == null) {
+            err = new Error('Center ' + req.params.centerId + ' not found');
             err.status = 404;
             return next(err);
         }
@@ -228,27 +231,27 @@ dishRouter.route('/:dishId/comments/:commentId')
     .catch((err) => next(err));
 })
 .delete(authenticate.verifyUser, (req, res, next) => {
-    Dishes.findById(req.params.dishId)
-    .then((dish) => {
-        if (dish != null && dish.comments.id(req.params.commentId) != null) {
-            if(!req.user._id.equals(dish.comments.id(req.params.commentId).author)){
+    Centers.findById(req.params.centerId)
+    .then((center) => {
+        if (center != null && center.comments.id(req.params.commentId) != null) {
+            if(!req.user._id.equals(center.comments.id(req.params.commentId).author)){
                 err = new Error('You are not authorized to Delete this comment!');
                 err.status = 403;
                 return next(err);
             }
-            dish.comments.id(req.params.commentId).remove();
-            dish.save()
-            .then((dish) => {
-                Dishes.findById(dish._id)
-                .populate((dish) => {
+            center.comments.id(req.params.commentId).remove();
+            center.save()
+            .then((center) => {
+                Centers.findById(center._id)
+                .populate((center) => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.json(dish);      
+                    res.json(center);      
                 })                 
             }, (err) => next(err));
         }
-        else if (dish == null) {
-            err = new Error('Dish ' + req.params.dishId + ' not found');
+        else if (center == null) {
+            err = new Error('Center ' + req.params.centerId + ' not found');
             err.status = 404;
             return next(err);
         }
@@ -261,4 +264,4 @@ dishRouter.route('/:dishId/comments/:commentId')
     .catch((err) => next(err));
 });
 
-module.exports = dishRouter;
+module.exports = centerRouter;

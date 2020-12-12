@@ -5,10 +5,10 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
-
+var cors = require('cors');
 var indexRouter = require('./routes/index');
 var userRouter = require('./routes/users');
-var dishRouter = require('./routes/dishRouter');
+var centerRouter = require('./routes/centerRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
 
@@ -18,7 +18,7 @@ var config = require('./config');
 
 const mongoose = require('mongoose');
 
-const Dishes = require('./models/dishes');
+const Centers = require('./models/centers');
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url);
@@ -28,7 +28,7 @@ connect.then((db) => {
 }, (err) => { console.log(err); });
 
 var app = express();
-
+app.use(cors());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -48,7 +48,7 @@ app.use('/users', userRouter);
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.use('/dishes', dishRouter);
+app.use('/centers', centerRouter);
 app.use('/promotions', promoRouter);
 app.use('/leaders', leaderRouter);
 

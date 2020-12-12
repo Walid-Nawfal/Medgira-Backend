@@ -23,7 +23,7 @@ var commentSchema = new Schema({
     timestamps: true
 });
 
-const dishSchema = new Schema({
+const centerSchema = new Schema({
     name: {
         type: String,
         required: true,
@@ -45,14 +45,19 @@ const dishSchema = new Schema({
         type: String,
         default: ''
     },
-    price: {
-        type: Currency,
-        required: true,
-        min: 0
+    rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+        default: 3
     },
     featured: {
         type: Boolean,
-        default:false      
+        default: false      
+    },
+    country: {
+        type: String,
+        required: true
     },
     comments:[commentSchema]
 }, {
@@ -60,5 +65,5 @@ const dishSchema = new Schema({
 });
 
 
-var Dishes = mongoose.model('Dish', dishSchema);
-module.exports = Dishes;
+var Centers = mongoose.model('Center', centerSchema);
+module.exports = Centers;
