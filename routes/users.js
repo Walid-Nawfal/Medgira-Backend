@@ -66,18 +66,30 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
     firstname: req.user.firstname,
     lastname: req.user.lastname
   });
-
+  
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({
-    success: true,
-    status: 'You are successfully logged in!',
-    token: token
-  });
+  if(req.user.admin){
+    res.json({
+      success: true,
+      status: 'You are successfully logged in!',
+      token: token,
+      admin: true
+    });
+  }
+  else{
+    res.json({
+      success: true,
+      status: 'You are successfully logged in!',
+      token: token,
+      admin: false
+    });
+  }
 });
 
 
 router.get('/logout', (req, res, next) => {
+  res.redirect('/');
   if (req.session) {
     req.session.destroy();
     res.clearCookie('session-id');

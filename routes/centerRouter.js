@@ -20,7 +20,7 @@ centerRouter.route('/')
     Centers.find({})
     .populate('comments.author')
     .then((centers) => {
-        console.log(centers);
+        // console.log(centers);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json(centers);
@@ -112,10 +112,10 @@ centerRouter.route('/:centerId/comments')
     .then((center) => {
         if (center != null) {
             req.body.author = req.user._id;
-            console.log(center.comments);
+            //console.log(center.comments);
             center.comments.push(req.body);
-            console.log(center.comments);
-            console.log(req.body);
+            //console.log(center.comments);
+            //console.log(req.body);
             center.save()
             .then((center) => {
                 Centers.findById(center._id)
